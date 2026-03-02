@@ -8,6 +8,7 @@ import { useFamily, useKidData, calcPoints, calcBalance,
   requestScreenTime, updateScreenRequest,
   payBill, addBill } from '../lib/data';
 import { supabase } from '../lib/supabase';
+import { ReportsTab, AllReports } from './ReportsTab';
 
 const COLORS = { elham:'#e0623a', ezekiel:'#3a9e7c', zara:'#9b5fd4' };
 const GRADE_OPTIONS = [
@@ -71,8 +72,7 @@ function KidPanel({ kid, familyId, onUpdate }) {
   const pts     = calcPoints(data);
   const bal     = calcBalance(data);
   const color   = kid.color || '#e0623a';
-  const tabs    = ['chores','school','behavior','bills','extras','screentime','goals','wallet'];
-
+  const tabs    = ['chores','school','behavior','bills','extras','screentime','goals','wallet','reports'];
   // ── Which chores are completed this week ──────────────────
   const today    = new Date();
   const weekKey  = `${today.getFullYear()}-W${String(Math.ceil(today.getDate()/7)).padStart(2,'0')}`;
@@ -146,7 +146,9 @@ function KidPanel({ kid, familyId, onUpdate }) {
       )}
 
       {/* ── WALLET ── */}
-      {activeTab==='wallet' && (
+      {activeTab==='wallet' && ({activeTab==='reports' && (
+  <ReportsTab kid={kid} data={data} color={color} />
+)}
         <WalletTab kid={kid} data={data} pts={pts} bal={bal} color={color} act={act} confirm={confirm} familyId={familyId} />
       )}
 
