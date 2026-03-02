@@ -8,7 +8,7 @@ import { useFamily, useKidData, calcPoints, calcBalance,
   requestScreenTime, updateScreenRequest,
   payBill, addBill } from '../lib/data';
 import { supabase } from '../lib/supabase';
-import { ReportsTab, AllReports } from './ReportsTab';
+import SettingsPage from './SettingsPage';
 
 const COLORS = { elham:'#e0623a', ezekiel:'#3a9e7c', zara:'#9b5fd4' };
 const GRADE_OPTIONS = [
@@ -72,7 +72,8 @@ function KidPanel({ kid, familyId, onUpdate }) {
   const pts     = calcPoints(data);
   const bal     = calcBalance(data);
   const color   = kid.color || '#e0623a';
-  const tabs    = ['chores','school','behavior','bills','extras','screentime','goals','wallet','reports'];
+  const tabs    = ['chores','school','behavior','bills','extras','screentime','goals','wallet'];
+
   // ── Which chores are completed this week ──────────────────
   const today    = new Date();
   const weekKey  = `${today.getFullYear()}-W${String(Math.ceil(today.getDate()/7)).padStart(2,'0')}`;
@@ -146,9 +147,7 @@ function KidPanel({ kid, familyId, onUpdate }) {
       )}
 
       {/* ── WALLET ── */}
-      {activeTab==='wallet' && ({activeTab==='reports' && (
-  <ReportsTab kid={kid} data={data} color={color} />
-)}
+      {activeTab==='wallet' && (
         <WalletTab kid={kid} data={data} pts={pts} bal={bal} color={color} act={act} confirm={confirm} familyId={familyId} />
       )}
 
@@ -696,8 +695,9 @@ function WalletTab({ kid, data, pts, bal, color, act, confirm, familyId }) {
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { family, kids, loading, reload } = useFamily();
-  const [activeKid, setActiveKid] = useState(null);
-  const [tick, setTick] = useState(0);
+  const [activeKid,    setActiveKid]    = useState(null);
+  const [tick,         setTick]         = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => { if (kids.length && !activeKid) setActiveKid(kids[0].id); }, [kids, activeKid]);
 
@@ -717,6 +717,7 @@ export default function Dashboard() {
           {kids.map(k => (
             <KidHeaderCard key={k.id} kid={k} familyId={family?.id} tick={tick} />
           ))}
+          <button style={{...s.signOutBtn, borderColor:'#888', color:'#ccc'}} onClick={() => setShowSettings(true)}>⚙️ Settings</button>
           <button style={s.signOutBtn} onClick={signOut}>Sign out</button>
         </div>
       </header>
@@ -733,6 +734,7 @@ export default function Dashboard() {
         </div>
 
         {kid && <KidPanel key={kid.id} kid={kid} familyId={family?.id} onUpdate={()=>setTick(t=>t+1)} />}
+      {showSettings && <SettingsPage family={family} kids={kids} onUpdate={reload} onClose={()=>setShowSettings(false)} />}
       </div>
     </div>
   );
