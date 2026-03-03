@@ -102,7 +102,7 @@ export default function OnboardingWizard({ familyId, onComplete }) {
         // Insert behavior presets as a kid setting (store in kid tagline for now, proper table later)
         // We store behavior presets in a separate table
         for (const b of kid.behaviorPresets) {
-          await supabase.from('behavior_presets').insert({ ...b, kid_id: kidRow.id, family_id: familyId }).catch(()=>{});
+          await supabase.from('behavior_presets').insert({ ...b, kid_id: kidRow.id, family_id: familyId });
         }
       }
       onComplete();
