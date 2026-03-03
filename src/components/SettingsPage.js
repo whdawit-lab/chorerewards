@@ -19,7 +19,6 @@ export default function SettingsPage({ family, kids, onUpdate, onClose }) {
   // Kid data
   const [kidData,    setKidData]    = useState({});
   const [loadingKid, setLoadingKid] = useState(false);
-  const [addingKid, setAddingKid] = useState(false);
   const [addingKid,  setAddingKid]  = useState(false);
 
   useEffect(() => {
@@ -384,44 +383,6 @@ function AddKidForm({ familyId, onSave, onCancel }) {
       {error && <div style={s.successMsg.replace ? s.successMsg : {background:'#fff0ed',color:'#c0392b',borderRadius:10,padding:'10px 14px',fontSize:'0.82rem',fontWeight:700,marginBottom:12}}>{error}</div>}
       <div style={{display:'flex',gap:8,marginTop:8}}>
         <button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={save} disabled={saving}>{saving?'Adding…':'Add '+( name||'Child')}</button>
-        <button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={onCancel}>Cancel</button>
-      </div>
-    </div>
-  );
-}
-
-function AddKidForm({ familyId, onSave, onCancel }) {
-  const COLORS2 = ['#e0623a','#3a9e7c','#9b5fd4','#2196f3','#ff9800','#e91e63'];
-  const EMOJIS2 = ['⭐','🌟','🦁','🐯','🦊','🐻','🐼','🦄','🚀','🎯','🏆','💎'];
-  const [name,  setName]  = React.useState('');
-  const [age,   setAge]   = React.useState('');
-  const [color, setColor] = React.useState('#e0623a');
-  const [emoji, setEmoji] = React.useState('⭐');
-  const [saving,setSaving]= React.useState(false);
-  const [err,   setErr]   = React.useState('');
-  const save = async () => {
-    if (!name.trim()) { setErr('Please enter a name!'); return; }
-    setSaving(true);
-    const { data, error } = await supabase.from('kids').insert({ name, age: parseInt(age)||null, color, emoji, family_id: familyId }).select().single();
-    if (error) { setErr(error.message); setSaving(false); return; }
-    onSave(data);
-  };
-  return (
-    <div style={{background:'#f0fbf5',borderRadius:14,padding:'16px',border:'2px dashed #3a9e62',marginBottom:16}}>
-      <div style={{fontWeight:900,color:'#3a9e62',marginBottom:12}}>➕ Add New Child</div>
-      <div style={s.field}><label style={s.label}>Name</label><input style={s.input} placeholder="Child name" value={name} onChange={e=>setName(e.target.value)} /></div>
-      <div style={s.field}><label style={s.label}>Age</label><input style={{...s.input,width:80}} type="number" value={age} onChange={e=>setAge(e.target.value)} /></div>
-      <div style={s.field}>
-        <label style={s.label}>Color</label>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{COLORS2.map(c=><div key={c} onClick={()=>setColor(c)} style={{width:30,height:30,borderRadius:'50%',background:c,cursor:'pointer',border:color===c?'3px solid #2b2620':'3px solid transparent'}}/>)}</div>
-      </div>
-      <div style={s.field}>
-        <label style={s.label}>Emoji</label>
-        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{EMOJIS2.map(e=><div key={e} onClick={()=>setEmoji(e)} style={{width:32,height:32,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',cursor:'pointer',background:emoji===e?color+'33':'#f5f0e8',border:emoji===e?'2px solid '+color:'2px solid transparent'}}>{e}</div>)}</div>
-      </div>
-      {err && <div style={{color:'red',fontSize:'0.82rem',marginBottom:8}}>{err}</div>}
-      <div style={{display:'flex',gap:8}}>
-        <button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={save} disabled={saving}>{saving?'Adding…':'Add '+name}</button>
         <button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={onCancel}>Cancel</button>
       </div>
     </div>
