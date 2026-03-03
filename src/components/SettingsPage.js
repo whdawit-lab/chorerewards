@@ -329,65 +329,82 @@ function KidSettingsPanel({ kid, kd, loading, familyId, onSaveProfile, onAddChor
 
 
 function AddKidForm({ familyId, onSave, onCancel }) {
-  const COLORS = ['#e0623a','#3a9e7c','#9b5fd4','#2196f3','#ff9800','#e91e63','#009688','#795548'];
-  const EMOJIS = ['⭐','🌟','🦁','🐯','🦊','🐻','🐼','🦄','🐉','🌈','🚀','⚡','🎯','🏆','💎','🎨'];
-  const [name,  setName]  = useState('');
-  const [age,   setAge]   = useState('');
-  const [color, setColor] = useState('#e0623a');
-  const [emoji, setEmoji] = useState('⭐');
-  const [saving,setSaving]= useState('');
-  const [error, setError] = useState('');
-
+  const COLORS = ['#e0623a','#3a9e7c','#9b5fd4','#2196f3','#ff9800','#e91e63'];
+  const EMOJIS = ['⭐','🌟','🦁','🐯','🦊','🐻','🐼','🦄','🚀','🎯','🏆','💎'];
+  const CHORES = [
+    {name:'Make your bed',icon:'🛏️',pts:4,frequency:'daily'},
+    {name:'Pick up toys',icon:'🧸',pts:3,frequency:'daily'},
+    {name:'Clear your plate',icon:'🥣',pts:3,frequency:'daily'},
+    {name:'Brush teeth (2x)',icon:'🦷',pts:2,frequency:'daily'},
+    {name:'Wash dishes',icon:'🍽️',pts:6,frequency:'daily'},
+    {name:'Take out trash',icon:'🗑️',pts:6,frequency:'weekly'},
+    {name:'Vacuum/sweep floor',icon:'🧹',pts:8,frequency:'weekly'},
+    {name:'Clean bathroom',icon:'🚽',pts:10,frequency:'weekly'},
+    {name:'Do laundry',icon:'🧺',pts:10,frequency:'weekly'},
+    {name:'Deep clean bedroom',icon:'🧼',pts:12,frequency:'monthly'},
+  ];
+  const ACTS = [
+    {name:'Reading',icon:'📖',pts_per_min:0.5},
+    {name:'Coding',icon:'💻',pts_per_min:1},
+    {name:'Music practice',icon:'🎵',pts_per_min:0.8},
+    {name:'Exercise',icon:'🏃',pts_per_min:0.5},
+    {name:'Art',icon:'🎨',pts_per_min:0.5},
+    {name:'Math practice',icon:'🔢',pts_per_min:0.8},
+  ];
+  const [step,  setStep]  = React.useState(0);
+  const [name,  setName]  = React.useState('');
+  const [age,   setAge]   = React.useState('');
+  const [color, setColor] = React.useState('#e0623a');
+  const [emoji, setEmoji] = React.useState('⭐');
+  const [chores,setChores]= React.useState([]);
+  const [acts,  setActs]  = React.useState([]);
+  const [saving,setSaving]= React.useState(false);
+  const [error, setError] = React.useState('');
+  const tog = (list,setList,item,key) => setList(p=>p.some(x=>x[key]===item[key])?p.filter(x=>x[key]!==item[key]):[...p,{...item}]);
+  const card = (sel) => ({display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:10,border:sel?'2px solid '+color:'2px solid #f0ebe0',background:sel?color+'18':'white',cursor:'pointer'});
   const save = async () => {
-    if (!name.trim()) { setError('Please enter a name!'); return; }
     setSaving(true);
-    const { data, error: err } = await supabase
-      .from('kids')
-      .insert({ name, age: parseInt(age)||null, color, emoji, family_id: familyId })
-      .select().single();
-    if (err) { setError(err.message); setSaving(false); return; }
-    onSave(data);
+    try {
+      const {data:kid,error:e} = await supabase.from('kids').insert({name,age:parseInt(age)||null,color,emoji,family_id:familyId}).select().single();
+      if(e) throw e;
+      for(const c of chores) await supabase.from('chores').insert({...c,kid_id:kid.id,family_id:familyId});
+      for(const a of acts)   await supabase.from('activities').insert({...a,kid_id:kid.id,family_id:familyId});
+      onSave(kid);
+    } catch(e){ setError(e.message); setSaving(false); }
   };
-
-  return (
-    <div style={{background:'#f8f8f8',borderRadius:14,padding:'18px 16px',border:'2px dashed #3a9e62',marginBottom:16}}>
-      <div style={{fontWeight:900,fontSize:'0.9rem',color:'#3a9e62',marginBottom:14}}>➕ Add New Child</div>
-      <div style={s.field}>
-        <label style={s.label}>Name</label>
-        <input style={s.input} placeholder="Child's name" value={name} onChange={e=>setName(e.target.value)} />
-      </div>
-      <div style={s.field}>
-        <label style={s.label}>Age</label>
-        <input style={{...s.input,width:100}} type="number" placeholder="Age" value={age} onChange={e=>setAge(e.target.value)} />
-      </div>
-      <div style={s.field}>
-        <label style={s.label}>Color</label>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          {COLORS.map(c => (
-            <div key={c} onClick={()=>setColor(c)}
-              style={{width:32,height:32,borderRadius:'50%',background:c,cursor:'pointer',border:color===c?'3px solid #2b2620':'3px solid transparent'}} />
-          ))}
-        </div>
-      </div>
-      <div style={s.field}>
-        <label style={s.label}>Emoji</label>
-        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-          {EMOJIS.map(e => (
-            <div key={e} onClick={()=>setEmoji(e)}
-              style={{width:34,height:34,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',cursor:'pointer',background:emoji===e?color+'33':'#f5f0e8',border:emoji===e?'2px solid '+color:'2px solid transparent'}}>
-              {e}
-            </div>
-          ))}
-        </div>
-      </div>
-      {error && <div style={s.successMsg.replace ? s.successMsg : {background:'#fff0ed',color:'#c0392b',borderRadius:10,padding:'10px 14px',fontSize:'0.82rem',fontWeight:700,marginBottom:12}}>{error}</div>}
-      <div style={{display:'flex',gap:8,marginTop:8}}>
-        <button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={save} disabled={saving}>{saving?'Adding…':'Add '+( name||'Child')}</button>
-        <button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={onCancel}>Cancel</button>
-      </div>
+  if(step===0) return (
+    <div style={{background:'#f0fbf5',borderRadius:14,padding:'16px',border:'2px dashed #3a9e62',marginBottom:16}}>
+      <div style={{fontWeight:900,color:'#3a9e62',marginBottom:12}}>➕ New Child — Profile</div>
+      <div style={s.field}><label style={s.label}>Name</label><input style={s.input} placeholder="Name" value={name} onChange={e=>setName(e.target.value)}/></div>
+      <div style={s.field}><label style={s.label}>Age</label><input style={{...s.input,width:80}} type="number" value={age} onChange={e=>setAge(e.target.value)}/></div>
+      <div style={s.field}><label style={s.label}>Color</label><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{COLORS.map(c=><div key={c} onClick={()=>setColor(c)} style={{width:30,height:30,borderRadius:'50%',background:c,cursor:'pointer',border:color===c?'3px solid #2b2620':'3px solid transparent'}}/>)}</div></div>
+      <div style={s.field}><label style={s.label}>Emoji</label><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{EMOJIS.map(e=><div key={e} onClick={()=>setEmoji(e)} style={{width:32,height:32,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',cursor:'pointer',background:emoji===e?color+'33':'#f5f0e8',border:emoji===e?'2px solid '+color:'2px solid transparent'}}>{e}</div>)}</div></div>
+      {error&&<div style={{color:'red',fontSize:'0.8rem',marginBottom:8}}>{error}</div>}
+      <div style={{display:'flex',gap:8'}}><button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={()=>{if(!name.trim()){setError('Enter a name!');return;}setError('');setStep(1);}}>Next → Chores</button><button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={onCancel}>Cancel</button></div>
     </div>
   );
+  if(step===1) return (
+    <div style={{background:'#f0fbf5',borderRadius:14,padding:'16px',border:'2px dashed #3a9e62',marginBottom:16,maxHeight:'60vh',overflowY:'auto'}}>
+      <div style={{fontWeight:900,color:'#3a9e62',marginBottom:8}}>➕ {name} — Chores ({chores.length} selected)</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:6,marginBottom:12}}>
+        {CHORES.map((c,i)=><div key={i} style={card(chores.some(x=>x.name===c.name))} onClick={()=>tog(chores,setChores,c,'name')}><span>{c.icon}</span><div><div style={{fontSize:'0.78rem',fontWeight:800}}>{c.name}</div><div style={{fontSize:'0.68rem',color:'#aaa'}}>{c.pts}pts · {c.frequency}</div></div>{chores.some(x=>x.name===c.name)&&<span style={{color,fontWeight:900}}>✓</span>}</div>)}
+      </div>
+      <div style={{display:'flex',gap:8}}><button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={()=>setStep(2)}>Next → Activities</button><button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={()=>setStep(0)}>← Back</button></div>
+    </div>
+  );
+  if(step===2) return (
+    <div style={{background:'#f0fbf5',borderRadius:14,padding:'16px',border:'2px dashed #3a9e62',marginBottom:16}}>
+      <div style={{fontWeight:900,color:'#3a9e62',marginBottom:8}}>➕ {name} — Activities ({acts.length} selected)</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:6,marginBottom:12}}>
+        {ACTS.map((a,i)=><div key={i} style={card(acts.some(x=>x.name===a.name))} onClick={()=>tog(acts,setActs,a,'name')}><span style={{fontSize:'1.2rem'}}>{a.icon}</span><div><div style={{fontSize:'0.78rem',fontWeight:800}}>{a.name}</div><div style={{fontSize:'0.68rem',color:'#aaa'}}>{a.pts_per_min}pts/min</div></div>{acts.some(x=>x.name===a.name)&&<span style={{color,fontWeight:900}}>✓</span>}</div>)}
+      </div>
+      {error&&<div style={{color:'red',fontSize:'0.8rem',marginBottom:8}}>{error}</div>}
+      <div style={{display:'flex',gap:8}}><button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={save} disabled={saving}>{saving?'Saving…':'✓ Add '+name}</button><button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={()=>setStep(1)}>← Back</button></div>
+    </div>
+  );
+  return null;
 }
+
 const s = {
   overlay:    { position:'fixed',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.6)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:16 },
   modal:      { background:'white',borderRadius:20,width:'100%',maxWidth:580,maxHeight:'90vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 60px rgba(0,0,0,0.3)',fontFamily:"'Nunito',sans-serif" },
