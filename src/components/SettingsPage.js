@@ -380,7 +380,7 @@ function AddKidForm({ familyId, onSave, onCancel }) {
       <div style={s.field}><label style={s.label}>Color</label><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{COLORS.map(c=><div key={c} onClick={()=>setColor(c)} style={{width:30,height:30,borderRadius:'50%',background:c,cursor:'pointer',border:color===c?'3px solid #2b2620':'3px solid transparent'}}/>)}</div></div>
       <div style={s.field}><label style={s.label}>Emoji</label><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{EMOJIS.map(e=><div key={e} onClick={()=>setEmoji(e)} style={{width:32,height:32,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',cursor:'pointer',background:emoji===e?color+'33':'#f5f0e8',border:emoji===e?'2px solid '+color:'2px solid transparent'}}>{e}</div>)}</div></div>
       {error&&<div style={{color:'red',fontSize:'0.8rem',marginBottom:8}}>{error}</div>}
-      <div style={{display:'flex',gap:8'}}><button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={()=>{if(!name.trim()){setError('Enter a name!');return;}setError('');setStep(1);}}>Next → Chores</button><button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={onCancel}>Cancel</button></div>
+      <div style={{display:'flex',gap:8}}><button style={{...s.btnSave,background:'#3a9e62',flex:1}} onClick={()=>{if(!name.trim()){setError('Enter a name!');return;}setError('');setStep(1);}}>Next → Chores</button><button style={{...s.btnSave,background:'white',color:'#888',border:'2px solid #eee',flex:1}} onClick={onCancel}>Cancel</button></div>
     </div>
   );
   if(step===1) return (
